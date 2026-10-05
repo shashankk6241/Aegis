@@ -31,6 +31,7 @@ void AAegisEnemyCharacter::BeginPlay()
 	if (AttributeSet)
 	{
 		AttributeSet->OnPoiseBroken.AddDynamic(this, &AAegisEnemyCharacter::HandlePoiseBroken);
+		AttributeSet->OnHealthChanged.AddDynamic(this, &AAegisEnemyCharacter::OnHealthChanged);
 	}
 }
 
@@ -44,6 +45,11 @@ void AAegisEnemyCharacter::HandlePoiseBroken(AActor* TargetActor)
 
 void AAegisEnemyCharacter::OnHealthChanged(AActor* InstigatorActor, AActor* TargetActor, float OldValue, float NewValue)
 {
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, FString::Printf(TEXT("Enemy Took Damage! Health: %f"), NewValue));
+	}
+
 	if (NewValue < OldValue && HitReactLightMontage)
 	{
 		PlayAnimMontage(HitReactLightMontage);

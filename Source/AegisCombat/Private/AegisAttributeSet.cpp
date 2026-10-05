@@ -67,6 +67,11 @@ void UAegisAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
             const float NewHealth = FMath::Clamp(OldHealth - LocalDamage, 0.0f, GetMaxHealth());
             SetHealth(NewHealth);
 
+            if (OldHealth != NewHealth)
+            {
+                OnHealthChanged.Broadcast(Data.EffectSpec.GetContext().GetInstigator(), TargetActor, OldHealth, NewHealth);
+            }
+
             // Trigger hit reaction or death
             if (NewHealth <= 0.0f)
             {

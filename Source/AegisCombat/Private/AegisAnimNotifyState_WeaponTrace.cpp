@@ -39,7 +39,7 @@ void UAegisAnimNotifyState_WeaponTrace::NotifyTick(
 			{
 				if (UAegisGameplayAbility_Melee* MeleeGA = Cast<UAegisGameplayAbility_Melee>(Instance))
 				{
-					MeleeGA->PerformWeaponTrace(StartSocketName, EndSocketName, TraceRadius);
+					MeleeGA->PerformWeaponTrace(StartSocketName, EndSocketName, TraceRadius, bDrawDebug);
 				}
 			}
 		}

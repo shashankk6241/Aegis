@@ -100,4 +100,91 @@ void FAegisGameplayTags::InitializeNativeGameplayTags()
         FName("GameplayCue.Combat.WeaponTrail"),
         FString("Ribbon trail following weapon edge.")
     );
+
+    // ==========================================
+    // Enemy AI States
+    // ==========================================
+    GameplayTags.State_AI_Idle = Manager.AddNativeGameplayTag(
+        FName("State.AI.Idle"),
+        FString("Enemy is idle and not engaged in any activity.")
+    );
+
+    GameplayTags.State_AI_Patrolling = Manager.AddNativeGameplayTag(
+        FName("State.AI.Patrolling"),
+        FString("Enemy is following a patrol route.")
+    );
+
+    GameplayTags.State_AI_Investigating = Manager.AddNativeGameplayTag(
+        FName("State.AI.Investigating"),
+        FString("Enemy is investigating a disturbance at a last known location.")
+    );
+
+    GameplayTags.State_AI_Chasing = Manager.AddNativeGameplayTag(
+        FName("State.AI.Chasing"),
+        FString("Enemy is actively pursuing an aggro target.")
+    );
+
+    GameplayTags.State_AI_InCombat = Manager.AddNativeGameplayTag(
+        FName("State.AI.InCombat"),
+        FString("Enemy is engaged in active combat with a target.")
+    );
+
+    GameplayTags.State_AI_Dead = Manager.AddNativeGameplayTag(
+        FName("State.AI.Dead"),
+        FString("Enemy has been killed and is processing death flow.")
+    );
+
+    GameplayTags.State_AI_Retreating = Manager.AddNativeGameplayTag(
+        FName("State.AI.Retreating"),
+        FString("Enemy is retreating back to its origin or patrol route.")
+    );
+
+    // ==========================================
+    // Enemy Ability Tags
+    // ==========================================
+    GameplayTags.Ability_Enemy_Melee = Manager.AddNativeGameplayTag(
+        FName("Ability.Enemy.Melee"),
+        FString("Enemy melee attack ability identifier.")
+    );
+
+    GameplayTags.Ability_Enemy_Ranged = Manager.AddNativeGameplayTag(
+        FName("Ability.Enemy.Ranged"),
+        FString("Enemy ranged attack / projectile ability identifier.")
+    );
+
+    GameplayTags.Ability_Enemy_Special = Manager.AddNativeGameplayTag(
+        FName("Ability.Enemy.Special"),
+        FString("Enemy special / elite ability identifier.")
+    );
+
+    GameplayTags.Ability_Enemy_PhaseTransition = Manager.AddNativeGameplayTag(
+        FName("Ability.Enemy.PhaseTransition"),
+        FString("Boss phase transition ability identifier.")
+    );
+
+    // ==========================================
+    // Enemy Cues
+    // ==========================================
+    GameplayTags.GameplayCue_Enemy_Death = Manager.AddNativeGameplayTag(
+        FName("GameplayCue.Enemy.Death"),
+        FString("Death VFX, sound, and dissolve material trigger.")
+    );
+
+    GameplayTags.GameplayCue_Enemy_Spawn = Manager.AddNativeGameplayTag(
+        FName("GameplayCue.Enemy.Spawn"),
+        FString("Spawn-in visual and audio effect.")
+    );
+
+    GameplayTags.GameplayCue_Enemy_Aggro = Manager.AddNativeGameplayTag(
+        FName("GameplayCue.Enemy.Aggro"),
+        FString("Aggro alert indicator (exclamation mark, sound sting).")
+    );
+
+    // ==========================================
+    // Enemy State
+    // ==========================================
+    GameplayTags.State_Enemy_Invulnerable = Manager.AddNativeGameplayTag(
+        FName("State.Enemy.Invulnerable"),
+        FString("Enemy is invulnerable (e.g., during phase transitions).")
+    );
 }

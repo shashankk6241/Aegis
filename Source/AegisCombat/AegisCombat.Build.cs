@@ -17,7 +17,10 @@ public class AegisCombat : ModuleRules
             "GameplayTags",
             "GameplayTasks",
             "MotionWarping",
-            "Niagara"
+            "Niagara",
+            "AIModule",
+            "NavigationSystem",
+            "UMG"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[]

@@ -52,7 +52,7 @@ public:
 
     // Hit-box Sphere Sweep
     UFUNCTION(BlueprintCallable, Category = "Aegis|Combat")
-    void PerformWeaponTrace(FName StartSocket, FName EndSocket, float Radius);
+    void PerformWeaponTrace(FName StartSocket, FName EndSocket, float Radius, bool bShowDebug = false);
 
 protected:
     // Combo Configuration

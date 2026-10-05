@@ -90,6 +90,9 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "Events")
     FOnPoiseBrokenDelegate OnPoiseBroken;
 
+    UPROPERTY(BlueprintAssignable, Category = "Events")
+    FOnAttributeChangedDelegate OnHealthChanged;
+
 protected:
     UFUNCTION()
     virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);

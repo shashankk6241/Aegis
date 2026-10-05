@@ -178,7 +178,7 @@ void UAegisGameplayAbility_Melee::UpdateMotionWarpingTarget()
     }
 }
 
-void UAegisGameplayAbility_Melee::PerformWeaponTrace(FName StartSocket, FName EndSocket, float Radius)
+void UAegisGameplayAbility_Melee::PerformWeaponTrace(FName StartSocket, FName EndSocket, float Radius, bool bShowDebug)
 {
     AActor* Avatar = GetAvatarActorFromActorInfo();
     if (!Avatar) return;
@@ -196,6 +196,9 @@ void UAegisGameplayAbility_Melee::PerformWeaponTrace(FName StartSocket, FName En
     IgnoreActors.Add(Avatar);
 
     TArray<FHitResult> HitResults;
+    
+    EDrawDebugTrace::Type DebugType = bShowDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
+    
     bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
         GetWorld(),
         StartLoc,
@@ -204,7 +207,7 @@ void UAegisGameplayAbility_Melee::PerformWeaponTrace(FName StartSocket, FName En
         ObjectTypes,
         false,
         IgnoreActors,
-        EDrawDebugTrace::None,
+        DebugType,
         HitResults,
         true
     );

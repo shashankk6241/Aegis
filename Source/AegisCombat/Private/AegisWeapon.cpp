@@ -24,7 +24,7 @@ void AAegisWeapon::EquipToCharacter(ACharacter* InCharacter, FName SocketName)
 
 	AttachToComponent(
 		InCharacter->GetMesh(),
-		FAttachmentTransformRules::SnapToTargetIncludingScale,
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 		SocketName
 	);
 
