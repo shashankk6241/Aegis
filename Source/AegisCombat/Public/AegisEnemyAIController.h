@@ -65,6 +65,12 @@ protected:
 	UFUNCTION()
 	void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
+	UFUNCTION()
+	void HandleAggroTargetChanged(AActor* NewTarget);
+
+	UFUNCTION()
+	void HandleAggroCleared(AActor* PreviousTarget);
+
 	void SetupPerception(const UAegisEnemyDataAsset* DataAsset);
-	void InitializeBlackboard();
+	void InitializeEnemyBlackboard();
 };

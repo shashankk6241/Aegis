@@ -3,6 +3,9 @@
 #include "AegisAttributeSet.h"
 #include "MotionWarpingComponent.h"
 #include "AegisGameplayTags.h"
+#include "Perception/AIPerceptionSystem.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/AISense_Hearing.h"
 
 AAegisCombatCharacter::AAegisCombatCharacter()
 {
@@ -88,6 +91,10 @@ void AAegisCombatCharacter::BeginPlay()
     {
         AttributeSet->OnPoiseBroken.AddDynamic(this, &AAegisCombatCharacter::HandlePoiseBroken);
     }
+
+    // Register with AI Perception system so enemies can see and hear the player
+    UAIPerceptionSystem::RegisterPerceptionStimuliSource(this, UAISense_Sight::StaticClass(), this);
+    UAIPerceptionSystem::RegisterPerceptionStimuliSource(this, UAISense_Hearing::StaticClass(), this);
 }
 
 void AAegisCombatCharacter::PossessedBy(AController* NewController)

@@ -1,4 +1,5 @@
 #include "AegisEnemyAIController.h"
+#include "AegisEnemyCharacter.h"
 #include "AegisEnemyDataAsset.h"
 #include "AegisAggroComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
@@ -37,7 +38,7 @@ AAegisEnemyAIController::AAegisEnemyAIController()
 	SightConfig->SetMaxAge(5.0f);
 	SightConfig->AutoSuccessRangeFromLastSeenLocation = 500.0f;
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	AIPerceptionComp->ConfigureSense(*SightConfig);
 
@@ -46,7 +47,7 @@ AAegisEnemyAIController::AAegisEnemyAIController()
 	HearingConfig->HearingRange = 800.0f;
 	HearingConfig->SetMaxAge(3.0f);
 	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
-	HearingConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	AIPerceptionComp->ConfigureSense(*HearingConfig);
 
@@ -57,11 +58,32 @@ void AAegisEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	// Enemy character will call StartBehaviorTreeFromDataAsset after its own setup
+	if (UAegisAggroComponent* AggroComp = InPawn->FindComponentByClass<UAegisAggroComponent>())
+	{
+		AggroComp->OnAggroTargetChanged.AddUniqueDynamic(this, &AAegisEnemyAIController::HandleAggroTargetChanged);
+		AggroComp->OnAggroCleared.AddUniqueDynamic(this, &AAegisEnemyAIController::HandleAggroCleared);
+	}
+
+	if (const AAegisEnemyCharacter* EnemyChar = Cast<AAegisEnemyCharacter>(InPawn))
+	{
+		if (EnemyChar->GetEnemyDataAsset())
+		{
+			StartBehaviorTreeFromDataAsset(EnemyChar->GetEnemyDataAsset());
+		}
+	}
 }
 
 void AAegisEnemyAIController::OnUnPossess()
 {
+	if (GetPawn())
+	{
+		if (UAegisAggroComponent* AggroComp = GetPawn()->FindComponentByClass<UAegisAggroComponent>())
+		{
+			AggroComp->OnAggroTargetChanged.RemoveDynamic(this, &AAegisEnemyAIController::HandleAggroTargetChanged);
+			AggroComp->OnAggroCleared.RemoveDynamic(this, &AAegisEnemyAIController::HandleAggroCleared);
+		}
+	}
+
 	// Safely stop the behavior tree
 	UBehaviorTreeComponent* BTComp = Cast<UBehaviorTreeComponent>(BrainComponent);
 	if (BTComp)
@@ -72,34 +94,68 @@ void AAegisEnemyAIController::OnUnPossess()
 	Super::OnUnPossess();
 }
 
-void AAegisEnemyAIController::StartBehaviorTreeFromDataAsset(const UAegisEnemyDataAsset* DataAsset)
+
+void AAegisEnemyAIController::StartBehaviorTreeFromDataAsset(
+    const UAegisEnemyDataAsset* DataAsset)
 {
-	if (!DataAsset || !DataAsset->BehaviorTree) return;
+    if (!DataAsset)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[AegisAI] %s: Cannot start BT - EnemyDataAsset is NULL! Assign DA_EnemyGrunt on enemy."), *GetName());
+        return;
+    }
 
-	// Configure perception from data asset values
-	SetupPerception(DataAsset);
+    if (!DataAsset->BehaviorTree)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[AegisAI] %s: Cannot start BT - BehaviorTree is NOT assigned in Data Asset '%s'!"), *GetName(), *DataAsset->GetName());
+        return;
+    }
 
-	// Initialize blackboard from the BT's blackboard asset
-	if (UseBlackboard(DataAsset->BehaviorTree->BlackboardAsset, Blackboard))
-	{
-		InitializeBlackboard();
+    if (!DataAsset->BehaviorTree->BlackboardAsset)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[AegisAI] %s: Cannot start BT - BlackboardAsset is NOT assigned in BehaviorTree '%s'!"), *GetName(), *DataAsset->BehaviorTree->GetName());
+        return;
+    }
 
-		// Set data-driven values
-		if (Blackboard)
-		{
-			Blackboard->SetValueAsFloat(BB_AttackRange, DataAsset->AttackRange);
-			Blackboard->SetValueAsVector(BB_HomeLocation, GetPawn() ? GetPawn()->GetActorLocation() : FVector::ZeroVector);
-		}
+    // Configure perception from data asset values.
+    SetupPerception(DataAsset);
 
-		RunBehaviorTree(DataAsset->BehaviorTree);
-	}
+    // UE 5.5 requires UBlackboardComponent*& here,
+    // so use a raw pointer rather than the TObjectPtr member.
+    UBlackboardComponent* BlackboardComp = nullptr;
 
-	// Bind perception delegate
-	if (AIPerceptionComp)
-	{
-		AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &AAegisEnemyAIController::OnPerceptionUpdated);
-	}
+    if (UseBlackboard(
+        DataAsset->BehaviorTree->BlackboardAsset.Get(),
+        BlackboardComp))
+    {
+        // Store the initialized component.
+        Blackboard = BlackboardComp;
+
+        // Initialize Aegis-specific Blackboard values.
+        InitializeEnemyBlackboard();
+
+        Blackboard->SetValueAsFloat(
+            BB_AttackRange,
+            DataAsset->AttackRange);
+
+        Blackboard->SetValueAsVector(
+            BB_HomeLocation,
+            GetPawn()
+                ? GetPawn()->GetActorLocation()
+                : FVector::ZeroVector);
+
+        RunBehaviorTree(DataAsset->BehaviorTree);
+        UE_LOG(LogTemp, Log, TEXT("[AegisAI] %s: Successfully started Behavior Tree '%s'"), *GetName(), *DataAsset->BehaviorTree->GetName());
+    }
+
+    // Bind only once, even if initialization is called repeatedly.
+    if (AIPerceptionComp)
+    {
+        AIPerceptionComp->OnTargetPerceptionUpdated.AddUniqueDynamic(
+            this,
+            &AAegisEnemyAIController::OnPerceptionUpdated);
+    }
 }
+
 
 void AAegisEnemyAIController::SetupPerception(const UAegisEnemyDataAsset* DataAsset)
 {
@@ -121,19 +177,27 @@ void AAegisEnemyAIController::SetupPerception(const UAegisEnemyDataAsset* DataAs
 	AIPerceptionComp->RequestStimuliListenerUpdate();
 }
 
-void AAegisEnemyAIController::InitializeBlackboard()
-{
-	if (!Blackboard) return;
 
-	Blackboard->SetValueAsBool(BB_HasAggroTarget, false);
-	Blackboard->SetValueAsBool(BB_HasLineOfSight, false);
-	Blackboard->SetValueAsBool(BB_CanAttack, true);
-	Blackboard->SetValueAsFloat(BB_DistanceToTarget, 0.0f);
+void AAegisEnemyAIController::InitializeEnemyBlackboard()
+{
+    if (!Blackboard)
+    {
+        return;
+    }
+
+    Blackboard->SetValueAsBool(BB_HasAggroTarget, false);
+    Blackboard->SetValueAsBool(BB_HasLineOfSight, false);
+    Blackboard->SetValueAsBool(BB_CanAttack, true);
+    Blackboard->SetValueAsFloat(BB_DistanceToTarget, 0.0f);
 }
+
 
 void AAegisEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (!Actor || !GetPawn() || Actor == GetPawn()) return;
+
+	// Do not aggro on fellow enemies
+	if (Actor->IsA<AAegisEnemyCharacter>()) return;
 
 	UAegisAggroComponent* AggroComp = GetPawn()->FindComponentByClass<UAegisAggroComponent>();
 	if (!AggroComp) return;
@@ -147,18 +211,6 @@ void AAegisEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 			ThreatAmount = 25.0f;
 		}
 		AggroComp->AddThreat(Actor, ThreatAmount);
-
-		// Update blackboard
-		if (Blackboard)
-		{
-			AActor* TopThreat = AggroComp->GetHighestThreatTarget();
-			if (TopThreat)
-			{
-				Blackboard->SetValueAsObject(BB_TargetActor, TopThreat);
-				Blackboard->SetValueAsVector(BB_TargetLocation, TopThreat->GetActorLocation());
-				Blackboard->SetValueAsBool(BB_HasAggroTarget, true);
-			}
-		}
 	}
 	else
 	{
@@ -169,6 +221,41 @@ void AAegisEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 			Blackboard->SetValueAsBool(BB_HasLineOfSight, false);
 		}
 	}
+}
+
+void AAegisEnemyAIController::HandleAggroTargetChanged(AActor* NewTarget)
+{
+	if (!Blackboard) return;
+
+	if (NewTarget)
+	{
+		Blackboard->SetValueAsObject(BB_TargetActor, NewTarget);
+		Blackboard->SetValueAsVector(BB_TargetLocation, NewTarget->GetActorLocation());
+		Blackboard->SetValueAsBool(BB_HasAggroTarget, true);
+
+		if (GetPawn())
+		{
+			const float Dist = FVector::Dist(GetPawn()->GetActorLocation(), NewTarget->GetActorLocation());
+			Blackboard->SetValueAsFloat(BB_DistanceToTarget, Dist);
+		}
+		UE_LOG(LogTemp, Log, TEXT("[AegisAI] %s: Acquired Aggro Target %s! Entering combat."), *GetName(), *NewTarget->GetName());
+	}
+	else
+	{
+		Blackboard->ClearValue(BB_TargetActor);
+		Blackboard->SetValueAsBool(BB_HasAggroTarget, false);
+		Blackboard->SetValueAsFloat(BB_DistanceToTarget, 0.0f);
+		UE_LOG(LogTemp, Log, TEXT("[AegisAI] %s: Aggro cleared. Returning to patrol."), *GetName());
+	}
+}
+
+void AAegisEnemyAIController::HandleAggroCleared(AActor* PreviousTarget)
+{
+	if (!Blackboard) return;
+
+	Blackboard->ClearValue(BB_TargetActor);
+	Blackboard->SetValueAsBool(BB_HasAggroTarget, false);
+	Blackboard->SetValueAsFloat(BB_DistanceToTarget, 0.0f);
 }
 
 void AAegisEnemyAIController::UpdateBlackboardCombatData()

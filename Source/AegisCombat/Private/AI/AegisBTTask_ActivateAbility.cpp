@@ -1,4 +1,6 @@
 #include "AI/AegisBTTask_ActivateAbility.h"
+#include "AegisEnemyCharacter.h"
+#include "AegisEnemyDataAsset.h"
 #include "AIController.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -20,12 +22,30 @@ EBTNodeResult::Type UAegisBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeCompo
 	}
 
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(AIController->GetPawn());
-	if (!ASC || !AbilityClass)
+	if (!ASC)
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	const bool bActivated = ASC->TryActivateAbilityByClass(AbilityClass);
+	TSubclassOf<UGameplayAbility> TargetAbility = AbilityClass;
+	if (!TargetAbility)
+	{
+		if (const AAegisEnemyCharacter* EnemyChar = Cast<AAegisEnemyCharacter>(AIController->GetPawn()))
+		{
+			if (EnemyChar->GetEnemyDataAsset() && EnemyChar->GetEnemyDataAsset()->GrantedAbilities.Num() > 0)
+			{
+				TargetAbility = EnemyChar->GetEnemyDataAsset()->GrantedAbilities[0];
+			}
+		}
+	}
+
+	if (!TargetAbility)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AegisAI] ActivateAbility task: No AbilityClass set on node and no GrantedAbilities in DataAsset!"));
+		return EBTNodeResult::Failed;
+	}
+
+	const bool bActivated = ASC->TryActivateAbilityByClass(TargetAbility);
 	if (!bActivated)
 	{
 		return EBTNodeResult::Failed;
