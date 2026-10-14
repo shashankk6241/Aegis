@@ -1,5 +1,6 @@
 #include "AegisAbilitySystemComponent.h"
 #include "AegisGameplayTags.h"
+#include "AegisGameplayAbility_Melee.h"
 #include "Abilities/GameplayAbility.h"
 
 UAegisAbilitySystemComponent::UAegisAbilitySystemComponent()
@@ -13,10 +14,13 @@ void UAegisAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& In
 
     const FAegisGameplayTags& Tags = FAegisGameplayTags::Get();
 
-    // If currently attacking and combo window is open, buffer the input!
-    if (HasMatchingGameplayTag(Tags.State_Combat_CanCombo))
+    // If currently attacking and combo window is open or already attacking, buffer the input!
+    if (HasMatchingGameplayTag(Tags.State_Combat_CanCombo) || HasMatchingGameplayTag(Tags.State_Combat_Attacking))
     {
-        AddLooseGameplayTag(Tags.State_Combat_InputQueued);
+        if (!HasMatchingGameplayTag(Tags.State_Combat_InputQueued))
+        {
+            AddLooseGameplayTag(Tags.State_Combat_InputQueued);
+        }
         TryBufferAbility(InputTag);
         return;
     }
@@ -24,10 +28,12 @@ void UAegisAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& In
     // Standard immediate ability activation
     for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
     {
-        const bool bMatchesSpecTag = AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag);
-        const bool bMatchesAssetTag = AbilitySpec.Ability && AbilitySpec.Ability->GetAssetTags().HasTagExact(InputTag);
+        const bool bMatchesSpecTag = AbilitySpec.GetDynamicSpecSourceTags().HasTag(InputTag);
+        const bool bMatchesAssetTag = AbilitySpec.Ability && AbilitySpec.Ability->GetAssetTags().HasTag(InputTag);
+        const bool bIsMeleeFallback = (InputTag.MatchesTag(Tags.InputTag_Attack_Light) || InputTag.MatchesTag(Tags.InputTag_Attack_Heavy)) &&
+            AbilitySpec.Ability && AbilitySpec.Ability->GetClass()->IsChildOf(UAegisGameplayAbility_Melee::StaticClass());
 
-        if (bMatchesSpecTag || bMatchesAssetTag)
+        if (bMatchesSpecTag || bMatchesAssetTag || bIsMeleeFallback)
         {
             AbilitySpecInputPressed(AbilitySpec);
             if (!AbilitySpec.IsActive())
@@ -42,12 +48,16 @@ void UAegisAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& I
 {
     if (!InputTag.IsValid()) return;
 
+    const FAegisGameplayTags& Tags = FAegisGameplayTags::Get();
+
     for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
     {
-        const bool bMatchesSpecTag = AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag);
-        const bool bMatchesAssetTag = AbilitySpec.Ability && AbilitySpec.Ability->GetAssetTags().HasTagExact(InputTag);
+        const bool bMatchesSpecTag = AbilitySpec.GetDynamicSpecSourceTags().HasTag(InputTag);
+        const bool bMatchesAssetTag = AbilitySpec.Ability && AbilitySpec.Ability->GetAssetTags().HasTag(InputTag);
+        const bool bIsMeleeFallback = (InputTag.MatchesTag(Tags.InputTag_Attack_Light) || InputTag.MatchesTag(Tags.InputTag_Attack_Heavy)) &&
+            AbilitySpec.Ability && AbilitySpec.Ability->GetClass()->IsChildOf(UAegisGameplayAbility_Melee::StaticClass());
 
-        if (bMatchesSpecTag || bMatchesAssetTag)
+        if (bMatchesSpecTag || bMatchesAssetTag || bIsMeleeFallback)
         {
             AbilitySpecInputReleased(AbilitySpec);
         }
@@ -84,6 +94,8 @@ void UAegisAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassO
 {
     if (!GetOwner()->HasAuthority()) return;
 
+    const FAegisGameplayTags& Tags = FAegisGameplayTags::Get();
+
     for (const TSubclassOf<UGameplayAbility>& AbilityClass : StartupAbilities)
     {
         if (AbilityClass)
@@ -104,6 +116,16 @@ void UAegisAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassO
             {
                 AbilitySpec.GetDynamicSpecSourceTags().AppendTags(CDO->GetAssetTags());
             }
+
+            // Ensure Melee abilities have the light attack input tag associated
+            if (AbilityClass->IsChildOf(UAegisGameplayAbility_Melee::StaticClass()))
+            {
+                if (Tags.InputTag_Attack_Light.IsValid())
+                {
+                    AbilitySpec.GetDynamicSpecSourceTags().AddTag(Tags.InputTag_Attack_Light);
+                }
+            }
+
             GiveAbility(AbilitySpec);
         }
     }

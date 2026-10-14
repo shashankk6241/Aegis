@@ -15,8 +15,31 @@ UAegisGameplayAbility_Melee::UAegisGameplayAbility_Melee()
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
     const FAegisGameplayTags& Tags = FAegisGameplayTags::Get();
-    SetAssetTags(FGameplayTagContainer(Tags.InputTag_Attack_Light));
-    ActivationOwnedTags.AddTag(Tags.State_Combat_Attacking);
+    if (Tags.InputTag_Attack_Light.IsValid())
+    {
+        SetAssetTags(FGameplayTagContainer(Tags.InputTag_Attack_Light));
+    }
+    else
+    {
+        FGameplayTag FallbackTag = FGameplayTag::RequestGameplayTag(FName("InputTag.Attack.Light"), false);
+        if (FallbackTag.IsValid())
+        {
+            SetAssetTags(FGameplayTagContainer(FallbackTag));
+        }
+    }
+
+    if (Tags.State_Combat_Attacking.IsValid())
+    {
+        ActivationOwnedTags.AddTag(Tags.State_Combat_Attacking);
+    }
+    else
+    {
+        FGameplayTag FallbackAttackingTag = FGameplayTag::RequestGameplayTag(FName("State.Combat.Attacking"), false);
+        if (FallbackAttackingTag.IsValid())
+        {
+            ActivationOwnedTags.AddTag(FallbackAttackingTag);
+        }
+    }
 }
 
 void UAegisGameplayAbility_Melee::ActivateAbility(
@@ -29,6 +52,7 @@ void UAegisGameplayAbility_Melee::ActivateAbility(
 
     if (ComboChain.IsEmpty())
     {
+        UE_LOG(LogTemp, Warning, TEXT("UAegisGameplayAbility_Melee::ActivateAbility: ComboChain is empty on %s!"), *GetName());
         EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
         return;
     }
@@ -51,6 +75,7 @@ void UAegisGameplayAbility_Melee::PlayCurrentComboAttack()
     const FAegisAttackMontageInfo& CurrentAttack = ComboChain[CurrentComboIndex];
     if (!CurrentAttack.Montage)
     {
+        UE_LOG(LogTemp, Warning, TEXT("UAegisGameplayAbility_Melee::PlayCurrentComboAttack: Montage is null at combo index %d on %s!"), CurrentComboIndex, *GetName());
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
         return;
     }

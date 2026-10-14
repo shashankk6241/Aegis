@@ -22,14 +22,19 @@ public:
     FGameplayTag State_Combat_PoiseBroken;
     FGameplayTag State_Combat_Dodging;
     FGameplayTag State_Combat_Blocking;
+    FGameplayTag State_Combat_Parrying;
+    FGameplayTag State_Player_Dead;
 
     // ==========================================
     // Ability / Input Tags
     // ==========================================
     FGameplayTag InputTag_Attack_Light;
     FGameplayTag InputTag_Attack_Heavy;
+    FGameplayTag InputTag_Attack_Special;
     FGameplayTag InputTag_Dodge;
     FGameplayTag InputTag_Block;
+    FGameplayTag InputTag_Potion;
+    FGameplayTag InputTag_TargetLock;
 
     // ==========================================
     // Damage & Effect Tags
@@ -46,6 +51,10 @@ public:
     FGameplayTag GameplayCue_Combat_HitImpact;
     FGameplayTag GameplayCue_Combat_PoiseBreak;
     FGameplayTag GameplayCue_Combat_WeaponTrail;
+    FGameplayTag GameplayCue_Combat_Parry;
+    FGameplayTag GameplayCue_Combat_Block;
+    FGameplayTag GameplayCue_Player_LevelUp;
+    FGameplayTag GameplayCue_Player_Potion;
 
     // ==========================================
     // Enemy AI State Tags

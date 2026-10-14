@@ -38,6 +38,16 @@ void FAegisGameplayTags::InitializeNativeGameplayTags()
         FString("Entity is actively blocking incoming strikes.")
     );
 
+    GameplayTags.State_Combat_Parrying = Manager.AddNativeGameplayTag(
+        FName("State.Combat.Parrying"),
+        FString("Entity is in the active perfect parry window.")
+    );
+
+    GameplayTags.State_Player_Dead = Manager.AddNativeGameplayTag(
+        FName("State.Player.Dead"),
+        FString("Player character is dead and awaiting respawn.")
+    );
+
     // Inputs
     GameplayTags.InputTag_Attack_Light = Manager.AddNativeGameplayTag(
         FName("InputTag.Attack.Light"),
@@ -49,6 +59,11 @@ void FAegisGameplayTags::InitializeNativeGameplayTags()
         FString("Heavy attack charged input.")
     );
 
+    GameplayTags.InputTag_Attack_Special = Manager.AddNativeGameplayTag(
+        FName("InputTag.Attack.Special"),
+        FString("Special skill / whirlwind attack input.")
+    );
+
     GameplayTags.InputTag_Dodge = Manager.AddNativeGameplayTag(
         FName("InputTag.Dodge"),
         FString("Dodge roll input.")
@@ -57,6 +72,16 @@ void FAegisGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.InputTag_Block = Manager.AddNativeGameplayTag(
         FName("InputTag.Block"),
         FString("Block / parry input.")
+    );
+
+    GameplayTags.InputTag_Potion = Manager.AddNativeGameplayTag(
+        FName("InputTag.Potion"),
+        FString("Use healing flask / potion input.")
+    );
+
+    GameplayTags.InputTag_TargetLock = Manager.AddNativeGameplayTag(
+        FName("InputTag.TargetLock"),
+        FString("Toggle lock-on target camera input.")
     );
 
     // Damage & Effects
@@ -99,6 +124,26 @@ void FAegisGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.GameplayCue_Combat_WeaponTrail = Manager.AddNativeGameplayTag(
         FName("GameplayCue.Combat.WeaponTrail"),
         FString("Ribbon trail following weapon edge.")
+    );
+
+    GameplayTags.GameplayCue_Combat_Parry = Manager.AddNativeGameplayTag(
+        FName("GameplayCue.Combat.Parry"),
+        FString("Sparks and sound burst when a perfect parry occurs.")
+    );
+
+    GameplayTags.GameplayCue_Combat_Block = Manager.AddNativeGameplayTag(
+        FName("GameplayCue.Combat.Block"),
+        FString("Shield clank and sparks when an incoming hit is blocked.")
+    );
+
+    GameplayTags.GameplayCue_Player_LevelUp = Manager.AddNativeGameplayTag(
+        FName("GameplayCue.Player.LevelUp"),
+        FString("Golden pillar VFX and celebratory fanfare when player levels up.")
+    );
+
+    GameplayTags.GameplayCue_Player_Potion = Manager.AddNativeGameplayTag(
+        FName("GameplayCue.Player.Potion"),
+        FString("Healing glow and sound when player uses a potion.")
     );
 
     // ==========================================
