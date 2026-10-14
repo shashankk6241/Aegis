@@ -14,6 +14,8 @@ class UAegisPlayerDataAsset;
 class UAegisPlayerProgressionComponent;
 class UAegisTargetLockComponent;
 class UAegisPlayerDeathComponent;
+class UAegisInventoryComponent;
+class UAegisEquipmentComponent;
 class AAegisWeapon;
 class UGameplayAbility;
 class UAnimMontage;
@@ -146,6 +148,25 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Aegis|Combat")
 	int32 GetMaxPotions() const;
 
+	// Inventory & Equipment Accessors
+	UFUNCTION(BlueprintPure, Category = "Aegis|Inventory")
+	UAegisInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
+	UFUNCTION(BlueprintPure, Category = "Aegis|Equipment")
+	UAegisEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Weapon")
+	void SetEquippedWeapon(AAegisWeapon* InWeapon) { EquippedWeapon = InWeapon; }
+
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Abilities")
+	void SetMeleeAbilityClass(TSubclassOf<UGameplayAbility> InClass) { MeleeAbilityClass = InClass; }
+
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Abilities")
+	void SetHeavyAttackAbilityClass(TSubclassOf<UGameplayAbility> InClass) { HeavyAttackAbilityClass = InClass; }
+
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Abilities")
+	void SetSpecialAbilityClass(TSubclassOf<UGameplayAbility> InClass) { SpecialAbilityClass = InClass; }
+
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -176,6 +197,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|Combat")
 	TObjectPtr<UAegisPlayerDeathComponent> DeathComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|Inventory")
+	TObjectPtr<UAegisInventoryComponent> InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|Equipment")
+	TObjectPtr<UAegisEquipmentComponent> EquipmentComponent;
 
 	// ==========================================
 	// Data-Driven Configuration

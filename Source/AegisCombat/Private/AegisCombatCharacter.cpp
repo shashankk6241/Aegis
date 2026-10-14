@@ -5,6 +5,9 @@
 #include "AegisPlayerProgressionComponent.h"
 #include "AegisTargetLockComponent.h"
 #include "AegisPlayerDeathComponent.h"
+#include "AegisInventoryComponent.h"
+#include "AegisEquipmentComponent.h"
+#include "AegisItemDefinitionDataAsset.h"
 #include "AegisWeapon.h"
 #include "AegisGameplayTags.h"
 #include "MotionWarpingComponent.h"
@@ -30,6 +33,8 @@ AAegisCombatCharacter::AAegisCombatCharacter()
 	ProgressionComponent = CreateDefaultSubobject<UAegisPlayerProgressionComponent>(TEXT("ProgressionComponent"));
 	TargetLockComponent = CreateDefaultSubobject<UAegisTargetLockComponent>(TEXT("TargetLockComponent"));
 	DeathComponent = CreateDefaultSubobject<UAegisPlayerDeathComponent>(TEXT("DeathComponent"));
+	InventoryComponent = CreateDefaultSubobject<UAegisInventoryComponent>(TEXT("InventoryComponent"));
+	EquipmentComponent = CreateDefaultSubobject<UAegisEquipmentComponent>(TEXT("EquipmentComponent"));
 }
 
 UAbilitySystemComponent* AAegisCombatCharacter::GetAbilitySystemComponent() const
@@ -220,11 +225,26 @@ void AAegisCombatCharacter::InitializeFromDataAsset()
 		PoiseBreakStaggerMontage = PlayerDataAsset->StunMontage;
 	}
 
-	// 4. Default weapon from data asset
-	if (!DefaultWeaponClass && PlayerDataAsset->DefaultWeaponClass)
+	// 4. Default weapon & Starting items from data asset
+	if (EquipmentComponent && PlayerDataAsset->StartingWeaponItem)
+	{
+		EquipmentComponent->EquipItemInstance(FAegisItemInstance(PlayerDataAsset->StartingWeaponItem, 1));
+	}
+	else if (!DefaultWeaponClass && PlayerDataAsset->DefaultWeaponClass)
 	{
 		DefaultWeaponClass = PlayerDataAsset->DefaultWeaponClass;
 		WeaponAttachSocket = PlayerDataAsset->WeaponAttachSocket;
+	}
+
+	if (InventoryComponent)
+	{
+		for (UAegisItemDefinitionDataAsset* ItemDef : PlayerDataAsset->StartingItems)
+		{
+			if (ItemDef)
+			{
+				InventoryComponent->AddItem(ItemDef, 1);
+			}
+		}
 	}
 
 	// 5. Consumables
@@ -310,7 +330,8 @@ void AAegisCombatCharacter::InitializeDefaultAttributes()
 
 void AAegisCombatCharacter::SpawnAndEquipDefaultWeapon()
 {
-	if (EquippedWeapon || !DefaultWeaponClass || !HasAuthority()) return;
+	if (EquippedWeapon || (EquipmentComponent && EquipmentComponent->IsSlotEquipped(EAegisEquipmentSlot::MainHand))) return;
+	if (!DefaultWeaponClass || !HasAuthority()) return;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;

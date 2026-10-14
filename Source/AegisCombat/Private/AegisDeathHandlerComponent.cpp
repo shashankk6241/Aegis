@@ -5,6 +5,8 @@
 #include "AegisGameplayTags.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AegisWorldPickup.h"
+#include "AegisItemDefinitionDataAsset.h"
 
 UAegisDeathHandlerComponent::UAegisDeathHandlerComponent()
 {
@@ -116,24 +118,37 @@ void UAegisDeathHandlerComponent::EvaluateLootDrops()
 
 	for (const FAegisLootDropInfo& Entry : LootTable)
 	{
-		if (!Entry.ItemClass) continue;
+		if (!Entry.ItemDefinition && !Entry.ItemClass) continue;
 
 		const float Roll = FMath::FRand();
 		if (Roll <= Entry.DropChance)
 		{
 			const int32 Quantity = FMath::RandRange(Entry.MinQuantity, Entry.MaxQuantity);
-			for (int32 i = 0; i < Quantity; ++i)
+
+			FVector SpawnLocation = GetOwner()->GetActorLocation();
+			SpawnLocation.Z += 30.0f;
+			SpawnLocation += FMath::VRand() * FMath::RandRange(30.0f, 80.0f);
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+			if (Entry.ItemDefinition && GetWorld())
 			{
-				// Spawn loot item near the dead enemy with slight scatter
-				FVector SpawnLocation = GetOwner()->GetActorLocation();
-				SpawnLocation.Z += 50.0f;
-				SpawnLocation += FMath::VRand() * FMath::RandRange(30.0f, 80.0f);
-
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-				GetWorld()->SpawnActor<AActor>(Entry.ItemClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+				AAegisWorldPickup* Pickup = GetWorld()->SpawnActor<AAegisWorldPickup>(AAegisWorldPickup::StaticClass(), SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+				if (Pickup)
+				{
+					Pickup->ItemDefinition = Entry.ItemDefinition;
+					Pickup->Quantity = Quantity;
+				}
 			}
+			else if (Entry.ItemClass && GetWorld())
+			{
+				for (int32 i = 0; i < Quantity; ++i)
+				{
+					GetWorld()->SpawnActor<AActor>(Entry.ItemClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+				}
+			}
+
 			DroppedItems.Add(Entry);
 		}
 	}

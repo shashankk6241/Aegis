@@ -12,9 +12,13 @@ struct AEGISCOMBAT_API FAegisLootDropInfo
 {
 	GENERATED_BODY()
 
-	/** Item class to spawn on death */
+	/** Actor class to spawn on death (legacy or custom actor) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loot")
 	TSubclassOf<AActor> ItemClass;
+
+	/** RPG Item Definition to drop as an AAegisWorldPickup */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loot")
+	TObjectPtr<class UAegisItemDefinitionDataAsset> ItemDefinition;
 
 	/** Probability of this item dropping (0.0 - 1.0) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loot", meta = (ClampMin = "0.0", ClampMax = "1.0"))

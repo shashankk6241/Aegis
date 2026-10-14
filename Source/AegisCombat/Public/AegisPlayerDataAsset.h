@@ -8,6 +8,7 @@ class UGameplayAbility;
 class UGameplayEffect;
 class UAnimMontage;
 class AAegisWeapon;
+class UAegisItemDefinitionDataAsset;
 
 UENUM(BlueprintType)
 enum class EAegisPlayerAttribute : uint8
@@ -96,13 +97,21 @@ public:
 	float PotionHealPercent = 0.45f;
 
 	// ==========================================
-	// Equipment
+	// Equipment & Starting Inventory
 	// ==========================================
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	TSubclassOf<AAegisWeapon> DefaultWeaponClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	FName WeaponAttachSocket = FName("hand_r_socket");
+
+	/** Starting weapon item definition (overrides DefaultWeaponClass if set) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	TObjectPtr<UAegisItemDefinitionDataAsset> StartingWeaponItem;
+
+	/** Starting inventory items (consumables, materials, spare equipment) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
+	TArray<TObjectPtr<UAegisItemDefinitionDataAsset>> StartingItems;
 
 	// ==========================================
 	// GAS Abilities
