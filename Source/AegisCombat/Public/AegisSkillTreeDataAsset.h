@@ -59,7 +59,7 @@ struct AEGISCOMBAT_API FAegisSkillNodeDefinition
  * Designer-authored skill tree containing nodes, prerequisites, level gates,
  * and ability/effect grants.
  */
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Blueprintable)
 class AEGISCOMBAT_API UAegisSkillTreeDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()

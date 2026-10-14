@@ -17,7 +17,7 @@ class UStaticMesh;
  * Static template defining immutable properties, equipment slots, visual meshes,
  * and Gameplay Abilities / Effects for an item.
  */
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Blueprintable)
 class AEGISCOMBAT_API UAegisItemDefinitionDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()

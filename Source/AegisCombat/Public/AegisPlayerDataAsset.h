@@ -25,7 +25,7 @@ enum class EAegisPlayerAttribute : uint8
  * Complete data-driven configuration for RPG player characters:
  * Base stats, stat growth formulas, XP requirements, starting abilities, weapon, and animations.
  */
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Blueprintable)
 class AEGISCOMBAT_API UAegisPlayerDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
