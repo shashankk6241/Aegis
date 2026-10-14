@@ -272,3 +272,28 @@ AAegisWeapon* UAegisEquipmentComponent::GetEquippedWeaponActor(EAegisEquipmentSl
 	}
 	return nullptr;
 }
+
+TMap<EAegisEquipmentSlot, FAegisItemInstance> UAegisEquipmentComponent::GetAllEquippedItems() const
+{
+	TMap<EAegisEquipmentSlot, FAegisItemInstance> Result;
+	for (const auto& Kvp : EquippedSlots)
+	{
+		if (Kvp.Value.ItemInstance.IsValid())
+		{
+			Result.Add(Kvp.Key, Kvp.Value.ItemInstance);
+		}
+	}
+	return Result;
+}
+
+void UAegisEquipmentComponent::ClearAllEquipment()
+{
+	AAegisCombatCharacter* Character = Cast<AAegisCombatCharacter>(GetOwner());
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
+
+	for (auto& Kvp : EquippedSlots)
+	{
+		RemoveItemGrants(Kvp.Key, Kvp.Value, Character, ASC);
+	}
+	EquippedSlots.Empty();
+}

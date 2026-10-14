@@ -16,6 +16,7 @@ class UAegisTargetLockComponent;
 class UAegisPlayerDeathComponent;
 class UAegisInventoryComponent;
 class UAegisEquipmentComponent;
+class UAegisSkillTreeComponent;
 class AAegisWeapon;
 class UGameplayAbility;
 class UAnimMontage;
@@ -155,6 +156,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Aegis|Equipment")
 	UAegisEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
 
+	UFUNCTION(BlueprintPure, Category = "Aegis|SkillTree")
+	UAegisSkillTreeComponent* GetSkillTreeComponent() const { return SkillTreeComponent; }
+
 	UFUNCTION(BlueprintCallable, Category = "Aegis|Weapon")
 	void SetEquippedWeapon(AAegisWeapon* InWeapon) { EquippedWeapon = InWeapon; }
 
@@ -203,6 +207,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|Equipment")
 	TObjectPtr<UAegisEquipmentComponent> EquipmentComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|SkillTree")
+	TObjectPtr<UAegisSkillTreeComponent> SkillTreeComponent;
 
 	// ==========================================
 	// Data-Driven Configuration

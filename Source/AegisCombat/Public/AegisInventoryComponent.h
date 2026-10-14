@@ -89,6 +89,9 @@ public:
 	bool IsFull() const { return FindFirstEmptySlot() == INDEX_NONE; }
 
 	UFUNCTION(BlueprintCallable, Category = "Aegis|Inventory")
+	void RestoreInventorySlots(const TArray<FAegisItemInstance>& InSlots);
+
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Inventory")
 	void ClearInventory();
 
 	// ==========================================

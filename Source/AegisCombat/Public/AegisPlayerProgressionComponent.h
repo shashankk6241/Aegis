@@ -12,6 +12,7 @@ class UAbilitySystemComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerXPChanged, int32, CurrentXP, int32, RequiredXP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerLevelUp, int32, NewLevel, int32, AttributePointsGained);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributePointsChanged, int32, AvailablePoints);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSkillPointsChanged, int32, AvailablePoints);
 
 /**
  * UAegisPlayerProgressionComponent
@@ -50,11 +51,34 @@ public:
 	int32 GetAvailableAttributePoints() const { return AvailableAttributePoints; }
 
 	UFUNCTION(BlueprintPure, Category = "Aegis|Progression")
+	int32 GetAvailableSkillPoints() const { return AvailableSkillPoints; }
+
+	UFUNCTION(BlueprintPure, Category = "Aegis|Progression")
 	int32 GetAllocatedPoints(EAegisPlayerAttribute Attribute) const;
 
 	// Stat Allocation
 	UFUNCTION(BlueprintCallable, Category = "Aegis|Progression")
 	bool AllocateAttributePoint(EAegisPlayerAttribute Attribute);
+
+	// Skill Points
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Progression")
+	bool SpendSkillPoints(int32 Amount);
+
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Progression")
+	void AddSkillPoints(int32 Amount);
+
+	// Save/Load Restoration
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Progression")
+	void RestoreProgressionData(
+		int32 InLevel,
+		int32 InXP,
+		int32 InUnspentAttrPoints,
+		int32 InUnspentSkillPoints,
+		int32 InVigor,
+		int32 InEndurance,
+		int32 InStrength,
+		int32 InResilience
+	);
 
 	// Automatic Enemy Death listener
 	UFUNCTION()
@@ -69,6 +93,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnAttributePointsChanged OnAttributePointsChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnSkillPointsChanged OnSkillPointsChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -87,6 +114,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|Progression")
 	int32 AvailableAttributePoints = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|Progression")
+	int32 AvailableSkillPoints = 0;
 
 	// Allocated Points
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aegis|Progression")

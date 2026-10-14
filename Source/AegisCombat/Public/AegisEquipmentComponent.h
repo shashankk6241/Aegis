@@ -76,6 +76,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Aegis|Equipment")
 	AAegisWeapon* GetEquippedWeaponActor(EAegisEquipmentSlot Slot = EAegisEquipmentSlot::MainHand) const;
 
+	UFUNCTION(BlueprintPure, Category = "Aegis|Equipment")
+	TMap<EAegisEquipmentSlot, FAegisItemInstance> GetAllEquippedItems() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Aegis|Equipment")
+	void ClearAllEquipment();
+
 	// ==========================================
 	// Delegates
 	// ==========================================

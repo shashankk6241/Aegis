@@ -9,6 +9,7 @@ class UGameplayEffect;
 class UAnimMontage;
 class AAegisWeapon;
 class UAegisItemDefinitionDataAsset;
+class UAegisSkillTreeDataAsset;
 
 UENUM(BlueprintType)
 enum class EAegisPlayerAttribute : uint8
@@ -139,6 +140,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TSubclassOf<UGameplayEffect> DefaultAttributesEffect;
+
+	/** Skill tree asset assigned to this character archetype */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|SkillTree")
+	TObjectPtr<UAegisSkillTreeDataAsset> DefaultSkillTree;
 
 	// ==========================================
 	// Combat Montages

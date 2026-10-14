@@ -69,6 +69,7 @@ void UAegisPlayerProgressionComponent::AddXP(int32 Amount)
 		CurrentXP -= XPForNextLevel;
 		CurrentLevel++;
 		AvailableAttributePoints += PointsPerLevel;
+		AvailableSkillPoints += 1; // 1 skill point per level
 		TotalPointsGained += PointsPerLevel;
 		bLeveledUp = true;
 		UpdateRequiredXP();
@@ -80,6 +81,7 @@ void UAegisPlayerProgressionComponent::AddXP(int32 Amount)
 	{
 		OnLevelUp.Broadcast(CurrentLevel, TotalPointsGained);
 		OnAttributePointsChanged.Broadcast(AvailableAttributePoints);
+		OnSkillPointsChanged.Broadcast(AvailableSkillPoints);
 
 		// Trigger Level Up GameplayCue
 		UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
@@ -92,6 +94,48 @@ void UAegisPlayerProgressionComponent::AddXP(int32 Amount)
 
 		RecalculateAttributes();
 	}
+}
+
+bool UAegisPlayerProgressionComponent::SpendSkillPoints(int32 Amount)
+{
+	if (Amount <= 0 || AvailableSkillPoints < Amount) return false;
+	AvailableSkillPoints -= Amount;
+	OnSkillPointsChanged.Broadcast(AvailableSkillPoints);
+	return true;
+}
+
+void UAegisPlayerProgressionComponent::AddSkillPoints(int32 Amount)
+{
+	if (Amount <= 0) return;
+	AvailableSkillPoints += Amount;
+	OnSkillPointsChanged.Broadcast(AvailableSkillPoints);
+}
+
+void UAegisPlayerProgressionComponent::RestoreProgressionData(
+	int32 InLevel,
+	int32 InXP,
+	int32 InUnspentAttrPoints,
+	int32 InUnspentSkillPoints,
+	int32 InVigor,
+	int32 InEndurance,
+	int32 InStrength,
+	int32 InResilience)
+{
+	CurrentLevel = FMath::Max(1, InLevel);
+	CurrentXP = FMath::Max(0, InXP);
+	AvailableAttributePoints = FMath::Max(0, InUnspentAttrPoints);
+	AvailableSkillPoints = FMath::Max(0, InUnspentSkillPoints);
+	VigorPoints = FMath::Max(0, InVigor);
+	EndurancePoints = FMath::Max(0, InEndurance);
+	StrengthPoints = FMath::Max(0, InStrength);
+	ResiliencePoints = FMath::Max(0, InResilience);
+
+	UpdateRequiredXP();
+	RecalculateAttributes();
+
+	OnXPChanged.Broadcast(CurrentXP, XPForNextLevel);
+	OnAttributePointsChanged.Broadcast(AvailableAttributePoints);
+	OnSkillPointsChanged.Broadcast(AvailableSkillPoints);
 }
 
 bool UAegisPlayerProgressionComponent::AllocateAttributePoint(EAegisPlayerAttribute Attribute)

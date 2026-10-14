@@ -7,6 +7,7 @@
 #include "AegisPlayerDeathComponent.h"
 #include "AegisInventoryComponent.h"
 #include "AegisEquipmentComponent.h"
+#include "AegisSkillTreeComponent.h"
 #include "AegisItemDefinitionDataAsset.h"
 #include "AegisWeapon.h"
 #include "AegisGameplayTags.h"
@@ -35,6 +36,7 @@ AAegisCombatCharacter::AAegisCombatCharacter()
 	DeathComponent = CreateDefaultSubobject<UAegisPlayerDeathComponent>(TEXT("DeathComponent"));
 	InventoryComponent = CreateDefaultSubobject<UAegisInventoryComponent>(TEXT("InventoryComponent"));
 	EquipmentComponent = CreateDefaultSubobject<UAegisEquipmentComponent>(TEXT("EquipmentComponent"));
+	SkillTreeComponent = CreateDefaultSubobject<UAegisSkillTreeComponent>(TEXT("SkillTreeComponent"));
 }
 
 UAbilitySystemComponent* AAegisCombatCharacter::GetAbilitySystemComponent() const
@@ -209,6 +211,12 @@ void AAegisCombatCharacter::InitializeFromDataAsset()
 	if (DeathComponent)
 	{
 		DeathComponent->ConfigureDeath(PlayerDataAsset->DeathMontage, PlayerDataAsset->RespawnMontage);
+	}
+
+	// 3. Configure Skill Tree
+	if (SkillTreeComponent && PlayerDataAsset->DefaultSkillTree)
+	{
+		SkillTreeComponent->SkillTreeData = PlayerDataAsset->DefaultSkillTree;
 	}
 
 	// 3. Fallback montages from data asset

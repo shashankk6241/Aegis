@@ -297,6 +297,16 @@ int32 UAegisInventoryComponent::FindFirstEmptySlot() const
 	return INDEX_NONE;
 }
 
+void UAegisInventoryComponent::RestoreInventorySlots(const TArray<FAegisItemInstance>& InSlots)
+{
+	Slots = InSlots;
+	if (Slots.Num() != MaxSlots)
+	{
+		Slots.SetNum(MaxSlots);
+	}
+	BroadcastUpdated();
+}
+
 void UAegisInventoryComponent::ClearInventory()
 {
 	for (int32 i = 0; i < Slots.Num(); ++i)
